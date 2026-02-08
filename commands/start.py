@@ -48,17 +48,15 @@ async def cmd_start(message: Message) -> None:
         )
         await message.answer(
             HELLO.format(name=name_mention),
-            reply_markup=ReplyKeyboardRemove(remove_keyboard=True),
-            parse_mode="HTML",
+            reply_markup=ReplyKeyboardRemove(),
         )
-        await message.answer(SELECT_ACTION, reply_markup=keyboard, parse_mode="HTML")
+        await message.answer(SELECT_ACTION, reply_markup=keyboard)
     except Exception as e:
         user_id = message.from_user.id if message.from_user is not None else "?"
         logger.error(f"Error handling /start for user {user_id}: {e}")
         try:
             await message.answer(
                 "❌ Произошла ошибка при запуске. Попробуйте позже.",
-                parse_mode="HTML",
             )
         except Exception:
             pass
@@ -101,11 +99,10 @@ async def on_new_member(event: ChatMemberUpdated) -> None:
             await event.bot.send_message(
                 chat_id=event.chat.id,
                 text=HELLO.format(name=name_mention),
-                reply_markup=ReplyKeyboardRemove(remove_keyboard=True),
-                parse_mode="HTML",
+                reply_markup=ReplyKeyboardRemove(),
             )
             await event.bot.send_message(
-                chat_id=event.chat.id, text=SELECT_ACTION, reply_markup=keyboard, parse_mode="HTML"
+                chat_id=event.chat.id, text=SELECT_ACTION, reply_markup=keyboard
             )
     except Exception as e:
         new_user = event.new_chat_member.user

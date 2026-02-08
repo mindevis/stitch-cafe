@@ -6,6 +6,7 @@ Initializes the bot, configures logging and starts update polling.
 import asyncio
 
 from aiogram import Bot, Dispatcher
+from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from loguru import logger
 
@@ -42,7 +43,7 @@ async def main() -> None:
 
     try:
         logger.info("Starting bot...")
-        bot = Bot(token=BOT_TOKEN, parse_mode=ParseMode.HTML)
+        bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
         dp = Dispatcher()
         dp.include_router(start_router)
         dp.include_router(order_router)

@@ -48,7 +48,7 @@ async def cmd_top(message: Message) -> None:
         name_mention = format_user_mention(
             message.from_user.id, message.from_user.first_name or ""
         )
-        await message.answer(ADMIN_ONLY.format(name=name_mention), parse_mode="HTML")
+        await message.answer(ADMIN_ONLY.format(name=name_mention))
         return
 
     async with get_db() as db_conn:
@@ -73,7 +73,7 @@ async def cmd_top(message: Message) -> None:
                 name_mention = format_user_mention(
                     message.from_user.id, message.from_user.first_name or ""
                 )
-                await message.answer(TOP_DM_FAIL.format(name=name_mention), parse_mode="HTML")
+                await message.answer(TOP_DM_FAIL.format(name=name_mention))
         return
 
     lines = [STATS_HEADER]
@@ -104,7 +104,7 @@ async def cmd_top(message: Message) -> None:
             name_mention = format_user_mention(
                 message.from_user.id, message.from_user.first_name or ""
             )
-            await message.answer(TOP_DM_FAIL.format(name=name_mention), parse_mode="HTML")
+            await message.answer(TOP_DM_FAIL.format(name=name_mention))
 
 
 @router.message(Command("top10"))
@@ -127,7 +127,7 @@ async def cmd_top10(message: Message) -> None:
             name_mention = format_user_mention(
                 message.from_user.id, message.from_user.first_name or ""
             )
-            await message.answer(ADMIN_ONLY.format(name=name_mention), parse_mode="HTML")
+            await message.answer(ADMIN_ONLY.format(name=name_mention))
             return
 
         if CHAT_ID and str(message.chat.id) != str(CHAT_ID):
@@ -146,7 +146,7 @@ async def cmd_top10(message: Message) -> None:
             rows = await cur.fetchall()
 
         if not rows:
-            await message.answer(NO_PLAYERS_IN_RATING, parse_mode="HTML")
+            await message.answer(NO_PLAYERS_IN_RATING)
             return
 
         lines = [TOP10_HEADER]
@@ -163,14 +163,13 @@ async def cmd_top10(message: Message) -> None:
             )
 
         text = "\n".join(lines)
-        await message.answer(text, parse_mode="HTML")
+        await message.answer(text)
     except Exception as e:
         user_id = message.from_user.id if message.from_user is not None else "?"
         logger.error(f"Error fetching top-10 for user {user_id}: {e}")
         try:
             await message.answer(
                 "❌ Произошла ошибка при получении рейтинга. Попробуйте позже.",
-                parse_mode="HTML",
             )
         except Exception:
             pass

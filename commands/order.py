@@ -119,7 +119,7 @@ async def _handle_new_order(
         if from_user is None or not isinstance(message, Message):
             return
         if CHAT_ID and str(chat.id) != str(CHAT_ID):
-            await message.answer(WRONG_CHAT, parse_mode="HTML")
+            await message.answer(WRONG_CHAT)
             return
 
         async with get_db() as db_conn:
@@ -132,7 +132,6 @@ async def _handle_new_order(
                 await message.answer(
                     ALREADY_HAS_ORDER.format(name=name_mention),
                     reply_markup=main_menu_kb(),
-                    parse_mode="HTML",
                 )
                 return
 
@@ -175,7 +174,7 @@ async def _handle_new_order(
                             name=name_mention, doubled_crosses=doubled_crosses
                         )
                         await save_active_order(db, user["user_id"], doubled_dishes, tag)
-                        await message.answer(text, reply_markup=main_menu_kb(), parse_mode="HTML")
+                        await message.answer(text, reply_markup=main_menu_kb())
                         return
                 elif order_type == "half_new_order":
                     level = user["level"]
@@ -197,14 +196,14 @@ async def _handle_new_order(
                         name=name_mention, half_crosses=half_crosses, dishes=lines
                     )
                     await save_active_order(db, user["user_id"], half_dishes, tag)
-                    await message.answer(text, reply_markup=main_menu_kb(), parse_mode="HTML")
+                    await message.answer(text, reply_markup=main_menu_kb())
                     return
                 elif order_type == "regular":
                     dishes = [order_config["dish"]]
                     name_mention = format_user_mention(from_user.id, user.get("first_name") or "")
                     text = order_config["text_template"].format(name=name_mention)
                     await save_active_order(db, user["user_id"], dishes, tag)
-                    await message.answer(text, reply_markup=main_menu_kb(), parse_mode="HTML")
+                    await message.answer(text, reply_markup=main_menu_kb())
                     return
 
             level = user["level"]
@@ -220,7 +219,7 @@ async def _handle_new_order(
                 + ORDER_TOTAL.format(total=total)
             )
             await save_active_order(db, user["user_id"], dishes, None)
-            await message.answer(text, reply_markup=main_menu_kb(), parse_mode="HTML")
+            await message.answer(text, reply_markup=main_menu_kb())
     except Exception as e:
         logger.error(
             f"Error creating order for user {from_user.id if from_user is not None else '?'}: {e}"
@@ -229,7 +228,6 @@ async def _handle_new_order(
             if isinstance(message, Message):
                 await message.answer(
                     "❌ Произошла ошибка при создании заказа. Попробуйте позже.",
-                    parse_mode="HTML",
                 )
         except Exception:
             pass
@@ -279,7 +277,7 @@ async def _handle_my_order(
         if from_user is None or not isinstance(message, Message):
             return
         if CHAT_ID and str(chat.id) != str(CHAT_ID):
-            await message.answer(WRONG_CHAT, parse_mode="HTML")
+            await message.answer(WRONG_CHAT)
             return
 
         async with get_db() as db_conn:
@@ -291,7 +289,6 @@ async def _handle_my_order(
                 await message.answer(
                     NO_ACTIVE_ORDER.format(name=name_mention),
                     reply_markup=main_menu_kb(),
-                    parse_mode="HTML",
                 )
                 return
             dishes = active["dishes"]
@@ -302,7 +299,7 @@ async def _handle_my_order(
                 f"{SHOW_ORDER_HEADER.format(name=name_mention)}\n\n{lines}"
                 + ORDER_TOTAL.format(total=total)
             )
-            await message.answer(text, reply_markup=main_menu_kb(), parse_mode="HTML")
+            await message.answer(text, reply_markup=main_menu_kb())
     except Exception as e:
         logger.error(
             f"Error viewing order for user {from_user.id if from_user is not None else '?'}: {e}"
@@ -311,7 +308,6 @@ async def _handle_my_order(
             if isinstance(message, Message):
                 await message.answer(
                     "❌ Произошла ошибка при просмотре заказа. Попробуйте позже.",
-                    parse_mode="HTML",
                 )
         except Exception:
             pass
@@ -361,7 +357,7 @@ async def _handle_done(
         if from_user is None or not isinstance(message, Message):
             return
         if CHAT_ID and str(chat.id) != str(CHAT_ID):
-            await message.answer(WRONG_CHAT, parse_mode="HTML")
+            await message.answer(WRONG_CHAT)
             return
 
         async with get_db() as db_conn:
@@ -373,7 +369,6 @@ async def _handle_done(
                 await message.answer(
                     NO_ACTIVE_ORDER.format(name=name_mention),
                     reply_markup=main_menu_kb(),
-                    parse_mode="HTML",
                 )
                 return
 
@@ -406,7 +401,7 @@ async def _handle_done(
             elif n_total == 200:
                 txt += TROPHY_DIAMOND
 
-            await message.answer(txt, reply_markup=main_menu_kb(), parse_mode="HTML")
+            await message.answer(txt, reply_markup=main_menu_kb())
     except Exception as e:
         logger.error(
             f"Error completing order for user {from_user.id if from_user is not None else '?'}: {e}"
@@ -415,7 +410,6 @@ async def _handle_done(
             if isinstance(message, Message):
                 await message.answer(
                     "❌ Произошла ошибка при завершении заказа. Попробуйте позже.",
-                    parse_mode="HTML",
                 )
         except Exception:
             pass
