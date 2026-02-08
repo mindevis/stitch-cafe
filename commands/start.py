@@ -5,13 +5,12 @@ Greets users and automatically welcomes new chat members.
 """
 from typing import cast
 
+import aiosqlite
 from aiogram import Router
 from aiogram.enums import ChatMemberStatus
 from aiogram.filters import CommandStart
 from aiogram.types import ChatMemberUpdated, Message, ReplyKeyboardRemove
 from loguru import logger
-
-import aiosqlite
 
 from config import CHAT_ID
 from data.texts import HELLO, SELECT_ACTION

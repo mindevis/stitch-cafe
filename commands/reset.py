@@ -3,12 +3,11 @@ Handler for /reset command (admins only).
 
 Allows admins to wipe the user database.
 """
+import aiosqlite
 from aiogram import Router
 from aiogram.filters import Command
 from aiogram.types import Message
 from loguru import logger
-
-import aiosqlite
 
 from data.texts import ADMIN_ONLY, RESET_SUCCESS
 from database import get_db

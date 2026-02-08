@@ -4,14 +4,12 @@ Order handlers.
 Create, view and complete orders. Supports text commands and inline buttons.
 """
 import random
-from typing import Union
 
+import aiosqlite
 from aiogram import F, Router
 from aiogram.filters import Command
 from aiogram.types import CallbackQuery, Message, User
 from loguru import logger
-
-import aiosqlite
 
 from config import CHAT_ID
 from data.dishes import DISHES_BY_LEVEL
@@ -91,7 +89,7 @@ def _order_index(total_orders: int) -> int:
 
 
 async def _handle_new_order(
-    message_or_query: Union[Message, CallbackQuery],
+    message_or_query: Message | CallbackQuery,
 ) -> None:
     """
     Handler for creating a new order.
@@ -240,7 +238,7 @@ async def _handle_new_order(
 @router.message(Command("new"))
 @router.message(Command("neworder"))
 @router.callback_query(F.data == CALLBACK_NEW)
-async def new_order(message_or_query: Union[Message, CallbackQuery]) -> None:
+async def new_order(message_or_query: Message | CallbackQuery) -> None:
     """
     Handle /new command or "New order" button.
 
@@ -251,7 +249,7 @@ async def new_order(message_or_query: Union[Message, CallbackQuery]) -> None:
 
 
 async def _handle_my_order(
-    message_or_query: Union[Message, CallbackQuery],
+    message_or_query: Message | CallbackQuery,
 ) -> None:
     """
     Handler for viewing current active order.
@@ -322,7 +320,7 @@ async def _handle_my_order(
 @router.message(Command("my"))
 @router.message(Command("myorder"))
 @router.callback_query(F.data == CALLBACK_MY)
-async def my_order(message_or_query: Union[Message, CallbackQuery]) -> None:
+async def my_order(message_or_query: Message | CallbackQuery) -> None:
     """
     Handle /my command or "My order" button.
 
@@ -333,7 +331,7 @@ async def my_order(message_or_query: Union[Message, CallbackQuery]) -> None:
 
 
 async def _handle_done(
-    message_or_query: Union[Message, CallbackQuery],
+    message_or_query: Message | CallbackQuery,
 ) -> None:
     """
     Handler for completing an order.
@@ -425,7 +423,7 @@ async def _handle_done(
 
 @router.message(Command("done"))
 @router.callback_query(F.data == CALLBACK_DONE)
-async def done(message_or_query: Union[Message, CallbackQuery]) -> None:
+async def done(message_or_query: Message | CallbackQuery) -> None:
     """
     Handle /done command or "Done" button.
 

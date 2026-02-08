@@ -4,7 +4,7 @@ Special order events.
 Game events (student, critic, dirty plate, second chef) with probabilities and messages.
 """
 import random
-from typing import Optional, cast
+from typing import cast
 
 from data.texts import (
     CRITIC_APPEAR,
@@ -52,7 +52,7 @@ SPECIAL_ORDERS = {
 
 def check_special_order(
     order_index: int, user_flags: dict
-) -> Optional[tuple[str, dict]]:
+) -> tuple[str, dict] | None:
     """
     Check whether a special order should be triggered.
 
@@ -66,7 +66,7 @@ def check_special_order(
         (tag, order_config) if special order triggered, else None.
     """
     for tag, order_config in SPECIAL_ORDERS.items():
-        min_idx = cast(Optional[int], order_config.get("min_order_index"))
+        min_idx = cast(int | None, order_config.get("min_order_index"))
         max_idx = order_config.get("max_order_index")
         if min_idx is not None and order_index < min_idx:
             continue

@@ -5,7 +5,7 @@ Provides functions for users, orders and game statistics.
 """
 import json
 from contextlib import asynccontextmanager
-from typing import Any, Optional, Protocol, cast, runtime_checkable
+from typing import Any, Protocol, cast, runtime_checkable
 
 import aiosqlite
 from loguru import logger
@@ -19,14 +19,14 @@ DB_PATH = "data/cafe.db"
 class _UserLike(Protocol):
     """Protocol for objects with id and first_name (e.g. Telegram User)."""
     id: int
-    first_name: Optional[str]
+    first_name: str | None
 
 
 class _FakeUser:
     """Minimal user-like object for ensure_user in fetch_user."""
     __slots__ = ("id", "first_name")
 
-    def __init__(self, user_id: int, first_name: Optional[str] = None) -> None:
+    def __init__(self, user_id: int, first_name: str | None = None) -> None:
         self.id = user_id
         self.first_name = first_name
 
@@ -162,7 +162,7 @@ async def fetch_user(db: aiosqlite.Connection, user_id: int, first_name: str) ->
 
 
 async def save_active_order(
-    db: aiosqlite.Connection, user_id: int, dishes: list[tuple[str, int]], tag: Optional[str]
+    db: aiosqlite.Connection, user_id: int, dishes: list[tuple[str, int]], tag: str | None
 ) -> None:
     """
     Save user's active order to database.
@@ -189,7 +189,7 @@ async def save_active_order(
         raise
 
 
-async def get_active_order(db: aiosqlite.Connection, user_id: int) -> Optional[dict[str, Any]]:
+async def get_active_order(db: aiosqlite.Connection, user_id: int) -> dict[str, Any] | None:
     """
     Get user's active order from database.
 
@@ -243,7 +243,7 @@ async def save_last_order(
     user_id: int,
     dishes: list[tuple[str, int]],
     order_crosses: int,
-    tag: Optional[str] = None,
+    tag: str | None = None,
 ) -> None:
     """
     Save last completed order (for "dirty plate" event).
@@ -271,7 +271,7 @@ async def save_last_order(
         raise
 
 
-async def get_last_order(db: aiosqlite.Connection, user_id: int) -> Optional[dict[str, Any]]:
+async def get_last_order(db: aiosqlite.Connection, user_id: int) -> dict[str, Any] | None:
     """
     Get user's last completed order.
 
@@ -298,7 +298,7 @@ async def get_last_order(db: aiosqlite.Connection, user_id: int) -> Optional[dic
 
 
 async def finish_order_and_level(
-    db: aiosqlite.Connection, user_id: int, tag: Optional[str], order_crosses: int
+    db: aiosqlite.Connection, user_id: int, tag: str | None, order_crosses: int
 ) -> tuple[int, bool, str, int]:
     """
     Complete order and update user statistics.
@@ -320,9 +320,9 @@ async def finish_order_and_level(
     """
     try:
         cur = await db.execute(
-            """SELECT total_orders, total_crosses, level, has_student_done, 
-                      has_dirty_plate_done, has_critic_done, has_second_chef_done, 
-                      active_order_json 
+            """SELECT total_orders, total_crosses, level, has_student_done,
+                      has_dirty_plate_done, has_critic_done, has_second_chef_done,
+                      active_order_json
                FROM users WHERE user_id=?""",
             (user_id,),
         )
@@ -364,9 +364,9 @@ async def finish_order_and_level(
             level += 1
 
         await db.execute(
-            """UPDATE users SET total_orders=?, total_crosses=?, level=?, 
-                      has_student_done=?, has_dirty_plate_done=?, has_critic_done=?, 
-                      has_second_chef_done=?, active_order_json=NULL 
+            """UPDATE users SET total_orders=?, total_crosses=?, level=?,
+                      has_student_done=?, has_dirty_plate_done=?, has_critic_done=?,
+                      has_second_chef_done=?, active_order_json=NULL
                WHERE user_id=?""",
             (
                 total,

@@ -3,12 +3,11 @@ Handlers for stats commands (admins only).
 
 Full stats and top-10 players.
 """
+import aiosqlite
 from aiogram import Router
 from aiogram.filters import Command
 from aiogram.types import Message
 from loguru import logger
-
-import aiosqlite
 
 from config import CHAT_ID
 from data.levels import LEVELS
@@ -55,7 +54,7 @@ async def cmd_top(message: Message) -> None:
     async with get_db() as db_conn:
         db: aiosqlite.Connection = db_conn
         cur = await db.execute("""
-            SELECT first_name, level, total_orders, has_student_done, has_critic_done, 
+            SELECT first_name, level, total_orders, has_student_done, has_critic_done,
                    has_dirty_plate_done, has_second_chef_done
             FROM users
             ORDER BY total_orders DESC, level DESC
