@@ -166,9 +166,13 @@ async def _handle_new_order(
                     if last_order:
                         last_dishes = last_order.get("dishes", [])
                         last_crosses = last_order.get("crosses", 0)
-                        doubled_dishes = [(name, crosses * 2) for name, crosses in last_dishes]
+                        doubled_dishes = [
+                            (name, crosses * 2) for name, crosses in last_dishes
+                        ]
                         doubled_crosses = last_crosses * 2
-                        name_mention = format_user_mention(from_user.id, user.get("first_name") or "")
+                        name_mention = format_user_mention(
+                            from_user.id, user.get("first_name") or ""
+                        )
                         text = order_config["text_template"].format(
                             name=name_mention, doubled_crosses=doubled_crosses
                         )
@@ -187,7 +191,9 @@ async def _handle_new_order(
                         name0, val0 = half_dishes[0]
                         half_dishes[0] = (name0, max(1, val0 + diff))
                         half_crosses = half_total
-                    lines = "\n".join([DISH_LINE.format(name=n, crosses=v) for (n, v) in half_dishes])
+                    lines = "\n".join(
+                        [DISH_LINE.format(name=n, crosses=v) for (n, v) in half_dishes]
+                    )
                     name_mention = format_user_mention(from_user.id, user.get("first_name") or "")
                     text = order_config["text_template"].format(
                         name=name_mention, half_crosses=half_crosses, dishes=lines

@@ -19,4 +19,8 @@ CHAT_ID = os.getenv("CHAT_ID", "")
 ADMIN_IDS_STR = os.getenv("ADMIN_ID", "")
 
 # List of admin IDs (parsed from ADMIN_IDS_STR)
-ADMIN_IDS = [aid.strip() for aid in ADMIN_IDS_STR.split(",") if aid.strip()] if ADMIN_IDS_STR else []
+ADMIN_IDS = (
+    [aid.strip() for aid in ADMIN_IDS_STR.split(",") if aid.strip()]
+    if ADMIN_IDS_STR
+    else []
+)

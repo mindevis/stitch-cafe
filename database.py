@@ -26,8 +26,8 @@ class _FakeUser:
     """Minimal user-like object for ensure_user in fetch_user."""
     __slots__ = ("id", "first_name")
 
-    def __init__(self, id: int, first_name: Optional[str] = None) -> None:
-        self.id = id
+    def __init__(self, user_id: int, first_name: Optional[str] = None) -> None:
+        self.id = user_id
         self.first_name = first_name
 
 
@@ -150,7 +150,7 @@ async def fetch_user(db: aiosqlite.Connection, user_id: int, first_name: str) ->
         aiosqlite.Error: On SQL execution error
     """
     try:
-        await ensure_user(db, _FakeUser(user_id, first_name))
+        await ensure_user(db, _FakeUser(user_id=user_id, first_name=first_name))
         cur = await db.execute("SELECT * FROM users WHERE user_id = ?", (user_id,))
         row = await cur.fetchone()
         if not row:
@@ -329,7 +329,7 @@ async def finish_order_and_level(
         row = await cur.fetchone()
         if not row:
             raise ValueError(f"User {user_id} not found")
-            
+
         total = (row["total_orders"] or 0) + 1
         total_crosses = (row["total_crosses"] or 0) + order_crosses
         level = row["level"] or 0

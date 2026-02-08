@@ -4,7 +4,7 @@ Special order events.
 Game events (student, critic, dirty plate, second chef) with probabilities and messages.
 """
 import random
-from typing import Any, Optional, cast
+from typing import Optional, cast
 
 from data.texts import (
     CRITIC_APPEAR,
@@ -80,5 +80,5 @@ def check_special_order(
         prob = cast(float, order_config["probability"])
         if random.random() < prob:
             return tag, order_config
-    
+
     return None

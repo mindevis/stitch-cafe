@@ -63,7 +63,7 @@ async def cmd_top(message: Message) -> None:
         rows = await cur.fetchall()
 
     admin_id = str(message.from_user.id)
-    
+
     if not rows:
         try:
             await message.bot.send_message(chat_id=admin_id, text=EMPTY_DB)
