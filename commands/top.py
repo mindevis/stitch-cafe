@@ -1,7 +1,7 @@
 """
-Модуль обработки команд статистики (только для администраторов).
+Handlers for stats commands (admins only).
 
-Содержит обработчики для просмотра полной статистики и топ-10 игроков.
+Full stats and top-10 players.
 """
 from aiogram import Router
 from aiogram.filters import Command
@@ -31,16 +31,15 @@ router = Router()
 @router.message(Command("top"))
 async def cmd_top(message: Message) -> None:
     """
-    Команда для админов - отправляет полную статистику в личные сообщения.
-    
-    Получает полную статистику всех игроков из базы данных и отправляет
-    её администратору в личные сообщения.
-    
+    Admin command: send full stats to DMs.
+
+    Fetches all players from DB and sends stats to the requesting admin.
+
     Args:
-        message: Объект сообщения от пользователя
-        
+        message: Incoming message
+
     Raises:
-        Exception: При ошибках работы с БД или отправки сообщений
+        Exception: On DB or send errors
     """
     if not is_admin(str(message.from_user.id)):
         name_mention = format_user_mention(message.from_user.id, message.from_user.first_name)
@@ -56,7 +55,6 @@ async def cmd_top(message: Message) -> None:
         """)
         rows = await cur.fetchall()
 
-    # Отправляем статистику только запросившему админу
     admin_id = str(message.from_user.id)
     
     if not rows:
@@ -89,7 +87,6 @@ async def cmd_top(message: Message) -> None:
         ))
     text = "\n".join(lines)
 
-    # Отправляем только запросившему админу
     try:
         await message.bot.send_message(chat_id=admin_id, text=text)
         if message.chat.type != "private":
@@ -102,19 +99,17 @@ async def cmd_top(message: Message) -> None:
 @router.message(Command("top10"))
 async def cmd_top10(message: Message) -> None:
     """
-    Команда для админов - показывает топ-10 игроков в чате.
-    
-    Получает топ-10 игроков по количеству выполненных заказов и
-    отправляет рейтинг в чат. Работает только в игровом чате.
-    
+    Admin command: show top-10 players in chat.
+
+    Fetches top-10 by completed orders and posts ranking. Game chat only.
+
     Args:
-        message: Объект сообщения от пользователя
-        
+        message: Incoming message
+
     Raises:
-        Exception: При ошибках работы с БД или отправки сообщений
+        Exception: On DB or send errors
     """
     try:
-        # Только админ
         if not is_admin(str(message.from_user.id)):
             name_mention = format_user_mention(
                 message.from_user.id, message.from_user.first_name
@@ -122,7 +117,6 @@ async def cmd_top10(message: Message) -> None:
             await message.answer(ADMIN_ONLY.format(name=name_mention), parse_mode="HTML")
             return
 
-        # Работает только в игровом чате
         if CHAT_ID and str(message.chat.id) != str(CHAT_ID):
             return
 
@@ -157,7 +151,7 @@ async def cmd_top10(message: Message) -> None:
         text = "\n".join(lines)
         await message.answer(text, parse_mode="HTML")
     except Exception as e:
-        logger.error(f"Ошибка получения топ-10 для пользователя {message.from_user.id}: {e}")
+        logger.error(f"Error fetching top-10 for user {message.from_user.id}: {e}")
         try:
             await message.answer(
                 "❌ Произошла ошибка при получении рейтинга. Попробуйте позже.",

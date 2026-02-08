@@ -1,8 +1,7 @@
 """
-Модуль обработки заказов.
+Order handlers.
 
-Содержит обработчики для создания, просмотра и завершения заказов.
-Поддерживает как текстовые команды, так и inline-кнопки.
+Create, view and complete orders. Supports text commands and inline buttons.
 """
 import random
 from typing import Union
@@ -46,20 +45,16 @@ router = Router()
 
 async def generate_regular_order(level: int) -> list[tuple[str, int]]:
     """
-    Генерирует обычный заказ из 3 блюд.
-    
-    Алгоритм:
-    - 1 блюдо с текущего уровня
-    - 2 блюда из всех открытых уровней (0..level)
-    - Без повторов
-    
+    Generate a regular order of 3 dishes.
+
+    One dish from current level, two from all unlocked levels (0..level), no duplicates.
+
     Args:
-        level: Текущий уровень игрока
-        
+        level: Player's current level
+
     Returns:
-        Список из 3 кортежей (название блюда, количество крестиков)
+        List of 3 (dish_name, crosses) tuples
     """
-    # Уровни 4+ (Шеф-повар) используют тот же пул блюд, что и уровень 3 (Су-шеф)
     dish_level = min(level, 3)
     opened = []
     for lv in range(0, dish_level + 1):
@@ -82,43 +77,40 @@ async def generate_regular_order(level: int) -> list[tuple[str, int]]:
 
 def _order_index(total_orders: int) -> int:
     """
-    Вычисляет номер нового заказа.
-    
+    Compute the next order number.
+
     Args:
-        total_orders: Количество уже завершенных заказов
-        
+        total_orders: Number of completed orders so far
+
     Returns:
-        Номер нового заказа (завершенные + 1)
+        Next order number (completed + 1)
     """
     return (total_orders or 0) + 1
 
 
 async def _handle_new_order(message_or_query: Union[Message, CallbackQuery]) -> None:
     """
-    Обработчик для создания нового заказа.
-    
-    Работает как с текстовыми командами, так и с inline-кнопками.
-    Генерирует обычный или специальный заказ в зависимости от условий.
-    
+    Handler for creating a new order.
+
+    Works with text commands and inline buttons. Generates regular or special order.
+
     Args:
-        message_or_query: Объект Message или CallbackQuery
-        
+        message_or_query: Message or CallbackQuery
+
     Raises:
-        Exception: При ошибках работы с БД или отправки сообщений
+        Exception: On DB or send errors
     """
     try:
-        # Определяем тип объекта и получаем нужные атрибуты
         if isinstance(message_or_query, CallbackQuery):
             message = message_or_query.message
             from_user = message_or_query.from_user
             chat = message.chat
-            await message_or_query.answer()  # Убираем индикатор загрузки
+            await message_or_query.answer()
         else:
             message = message_or_query
             from_user = message.from_user
             chat = message.chat
 
-        # Игровые команды только в указанной группе
         if CHAT_ID and str(chat.id) != str(CHAT_ID):
             await message.answer(WRONG_CHAT, parse_mode="HTML")
             return
@@ -138,14 +130,12 @@ async def _handle_new_order(message_or_query: Union[Message, CallbackQuery]) -> 
 
             idx = _order_index(user["total_orders"])
 
-            # Проверяем, был ли предыдущий заказ специальным
             last_order_was_special = False
             if user["total_orders"] > 0:
                 last_order = await get_last_order(db, user["user_id"])
                 if last_order and last_order.get("tag"):
                     last_order_was_special = True
 
-            # Проверка специальных заказов-событий
             if not last_order_was_special:
                 user_flags = {
                     "has_student_done": user.get("has_student_done", 0),
@@ -162,7 +152,6 @@ async def _handle_new_order(message_or_query: Union[Message, CallbackQuery]) -> 
                 order_type = order_config.get("type", "regular")
 
                 if order_type == "double_previous":
-                    # Грязная тарелка - удвоить предыдущий заказ
                     last_order = await get_last_order(db, user["user_id"])
                     if last_order:
                         last_dishes = last_order.get("dishes", [])
@@ -176,9 +165,7 @@ async def _handle_new_order(message_or_query: Union[Message, CallbackQuery]) -> 
                         await save_active_order(db, user["user_id"], doubled_dishes, tag)
                         await message.answer(text, reply_markup=main_menu_kb(), parse_mode="HTML")
                         return
-                    # Если нет предыдущего заказа, генерируем обычный
                 elif order_type == "half_new_order":
-                    # Помощь Шефа — обычный заказ по уровню, сумма делится пополам
                     level = user["level"]
                     dishes = await generate_regular_order(level)
                     total = sum(c for (_, c) in dishes)
@@ -199,7 +186,6 @@ async def _handle_new_order(message_or_query: Union[Message, CallbackQuery]) -> 
                     await message.answer(text, reply_markup=main_menu_kb(), parse_mode="HTML")
                     return
                 elif order_type == "regular":
-                    # Обычный специальный заказ (студент, критик)
                     dishes = [order_config["dish"]]
                     name_mention = format_user_mention(from_user.id, user["first_name"])
                     text = order_config["text_template"].format(name=name_mention)
@@ -207,7 +193,6 @@ async def _handle_new_order(message_or_query: Union[Message, CallbackQuery]) -> 
                     await message.answer(text, reply_markup=main_menu_kb(), parse_mode="HTML")
                     return
 
-            # Обычный заказ
             level = user["level"]
             dishes = await generate_regular_order(level)
             total = sum(x[1] for x in dishes)
@@ -223,14 +208,14 @@ async def _handle_new_order(message_or_query: Union[Message, CallbackQuery]) -> 
             await save_active_order(db, user["user_id"], dishes, None)
             await message.answer(text, reply_markup=main_menu_kb(), parse_mode="HTML")
     except Exception as e:
-        logger.error(f"Ошибка создания заказа для пользователя {from_user.id}: {e}")
+        logger.error(f"Error creating order for user {from_user.id}: {e}")
         try:
             await message.answer(
                 "❌ Произошла ошибка при создании заказа. Попробуйте позже.",
                 parse_mode="HTML",
             )
         except Exception:
-            pass  # Если не удалось отправить сообщение об ошибке
+            pass
 
 
 @router.message(Command("new"))
@@ -238,32 +223,31 @@ async def _handle_new_order(message_or_query: Union[Message, CallbackQuery]) -> 
 @router.callback_query(F.data == CALLBACK_NEW)
 async def new_order(message_or_query: Union[Message, CallbackQuery]) -> None:
     """
-    Обработчик команды /new или нажатия кнопки "Новый заказ".
-    
+    Handle /new command or "New order" button.
+
     Args:
-        message_or_query: Объект Message или CallbackQuery
+        message_or_query: Message or CallbackQuery
     """
     await _handle_new_order(message_or_query)
 
 async def _handle_my_order(message_or_query: Union[Message, CallbackQuery]) -> None:
     """
-    Обработчик для просмотра текущего активного заказа.
-    
-    Работает как с текстовыми командами, так и с inline-кнопками.
-    
+    Handler for viewing current active order.
+
+    Works with text commands and inline buttons.
+
     Args:
-        message_or_query: Объект Message или CallbackQuery
-        
+        message_or_query: Message or CallbackQuery
+
     Raises:
-        Exception: При ошибках работы с БД или отправки сообщений
+        Exception: On DB or send errors
     """
     try:
-        # Определяем тип объекта и получаем нужные атрибуты
         if isinstance(message_or_query, CallbackQuery):
             message = message_or_query.message
             from_user = message_or_query.from_user
             chat = message.chat
-            await message_or_query.answer()  # Убираем индикатор загрузки
+            await message_or_query.answer()
         else:
             message = message_or_query
             from_user = message.from_user
@@ -294,7 +278,7 @@ async def _handle_my_order(message_or_query: Union[Message, CallbackQuery]) -> N
             )
             await message.answer(text, reply_markup=main_menu_kb(), parse_mode="HTML")
     except Exception as e:
-        logger.error(f"Ошибка просмотра заказа для пользователя {from_user.id}: {e}")
+        logger.error(f"Error viewing order for user {from_user.id}: {e}")
         try:
             await message.answer(
                 "❌ Произошла ошибка при просмотре заказа. Попробуйте позже.",
@@ -309,33 +293,31 @@ async def _handle_my_order(message_or_query: Union[Message, CallbackQuery]) -> N
 @router.callback_query(F.data == CALLBACK_MY)
 async def my_order(message_or_query: Union[Message, CallbackQuery]) -> None:
     """
-    Обработчик команды /my или нажатия кнопки "Мой заказ".
-    
+    Handle /my command or "My order" button.
+
     Args:
-        message_or_query: Объект Message или CallbackQuery
+        message_or_query: Message or CallbackQuery
     """
     await _handle_my_order(message_or_query)
 
 async def _handle_done(message_or_query: Union[Message, CallbackQuery]) -> None:
     """
-    Обработчик для завершения заказа.
-    
-    Работает как с текстовыми командами, так и с inline-кнопками.
-    Обновляет статистику, проверяет повышение уровня и достижения.
-    
+    Handler for completing an order.
+
+    Works with text commands and inline buttons. Updates stats, level and achievements.
+
     Args:
-        message_or_query: Объект Message или CallbackQuery
-        
+        message_or_query: Message or CallbackQuery
+
     Raises:
-        Exception: При ошибках работы с БД или отправки сообщений
+        Exception: On DB or send errors
     """
     try:
-        # Определяем тип объекта и получаем нужные атрибуты
         if isinstance(message_or_query, CallbackQuery):
             message = message_or_query.message
             from_user = message_or_query.from_user
             chat = message.chat
-            await message_or_query.answer()  # Убираем индикатор загрузки
+            await message_or_query.answer()
         else:
             message = message_or_query
             from_user = message.from_user
@@ -391,7 +373,7 @@ async def _handle_done(message_or_query: Union[Message, CallbackQuery]) -> None:
 
             await message.answer(txt, reply_markup=main_menu_kb(), parse_mode="HTML")
     except Exception as e:
-        logger.error(f"Ошибка завершения заказа для пользователя {from_user.id}: {e}")
+        logger.error(f"Error completing order for user {from_user.id}: {e}")
         try:
             await message.answer(
                 "❌ Произошла ошибка при завершении заказа. Попробуйте позже.",
@@ -405,9 +387,9 @@ async def _handle_done(message_or_query: Union[Message, CallbackQuery]) -> None:
 @router.callback_query(F.data == CALLBACK_DONE)
 async def done(message_or_query: Union[Message, CallbackQuery]) -> None:
     """
-    Обработчик команды /done или нажатия кнопки "Готово".
-    
+    Handle /done command or "Done" button.
+
     Args:
-        message_or_query: Объект Message или CallbackQuery
+        message_or_query: Message or CallbackQuery
     """
     await _handle_done(message_or_query)

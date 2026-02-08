@@ -1,7 +1,7 @@
 """
-Модуль обработки команды /reset (только для администраторов).
+Handler for /reset command (admins only).
 
-Позволяет администраторам полностью очистить базу данных пользователей.
+Allows admins to wipe the user database.
 """
 from aiogram import Router
 from aiogram.filters import Command
@@ -18,19 +18,17 @@ router = Router()
 @router.message(Command("reset"))
 async def cmd_reset(message: Message) -> None:
     """
-    Обработчик команды /reset.
-    
-    Полностью очищает базу данных пользователей. Доступна только
-    администраторам. Работает везде (в личке и в чате).
-    
+    Handle /reset command.
+
+    Clears the user database. Admins only. Works in private chat and groups.
+
     Args:
-        message: Объект сообщения от пользователя
-        
+        message: Incoming message
+
     Raises:
-        Exception: При ошибках работы с БД или отправки сообщений
+        Exception: On DB or send errors
     """
     try:
-        # Только админ, работает везде (в личке и в чате)
         if not is_admin(str(message.from_user.id)):
             name_mention = format_user_mention(
                 message.from_user.id, message.from_user.first_name
@@ -42,10 +40,10 @@ async def cmd_reset(message: Message) -> None:
             await db.execute("DELETE FROM users")
             await db.commit()
         name_mention = format_user_mention(message.from_user.id, message.from_user.first_name)
-        logger.warning(f"Администратор {message.from_user.id} очистил базу данных")
+        logger.warning(f"Admin {message.from_user.id} cleared the database")
         await message.answer(RESET_SUCCESS.format(name=name_mention), parse_mode="HTML")
     except Exception as e:
-        logger.error(f"Ошибка сброса данных администратором {message.from_user.id}: {e}")
+        logger.error(f"Error resetting data by admin {message.from_user.id}: {e}")
         try:
             await message.answer(
                 "❌ Произошла ошибка при сбросе данных. Попробуйте позже.",

@@ -1,7 +1,7 @@
 """
-Точка входа для Telegram-бота "Вышивальное кафе".
+Entry point for the Telegram bot "Stitch Cafe".
 
-Модуль инициализирует бота, настраивает логирование и запускает обработку обновлений.
+Initializes the bot, configures logging and starts update polling.
 """
 import asyncio
 from aiogram import Bot, Dispatcher
@@ -13,7 +13,7 @@ from commands.order import router as order_router
 from commands.reset import router as reset_router
 from commands.top import router as top_router
 
-# Настройка логирования через loguru
+# Logging setup via loguru
 logger.add(
     "logs/bot_{time:YYYY-MM-DD}.log",
     rotation="00:00",
@@ -26,21 +26,20 @@ logger.add(
 
 async def main() -> None:
     """
-    Главная функция запуска бота.
-    
-    Инициализирует бота, регистрирует роутеры и запускает polling.
-    Обрабатывает ошибки запуска и логирует их.
-    
+    Main entry point for starting the bot.
+
+    Initializes the bot, registers routers and starts polling.
+    Handles startup errors and logs them.
+
     Raises:
-        RuntimeError: Если BOT_TOKEN не задан в переменных окружения.
+        RuntimeError: If BOT_TOKEN is not set in environment variables.
     """
     if not BOT_TOKEN:
-        logger.error("BOT_TOKEN не задан. Заполните .env")
-        raise RuntimeError("BOT_TOKEN не задан. Заполните .env")
-    
+        logger.error("BOT_TOKEN is not set. Fill in .env")
+        raise RuntimeError("BOT_TOKEN is not set. Fill in .env")
+
     try:
-        logger.info("Запуск бота...")
-        # Для aiogram 3.3.0 используем простой способ создания бота
+        logger.info("Starting bot...")
         bot = Bot(token=BOT_TOKEN, parse_mode=ParseMode.HTML)
         dp = Dispatcher()
         dp.include_router(start_router)
@@ -48,13 +47,12 @@ async def main() -> None:
         dp.include_router(reset_router)
         dp.include_router(top_router)
 
-        logger.info("Бот запущен и готов к работе")
-        # Включаем получение событий о новых участниках
+        logger.info("Bot is up and ready")
         await dp.start_polling(bot, allowed_updates=["message", "callback_query", "chat_member"])
     except KeyboardInterrupt:
-        logger.info("Бот остановлен пользователем")
+        logger.info("Bot stopped by user")
     except Exception as e:
-        logger.exception(f"Критическая ошибка при работе бота: {e}")
+        logger.exception(f"Critical error while running bot: {e}")
         raise
 
 

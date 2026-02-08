@@ -1,11 +1,10 @@
 """
-Модуль главного меню бота.
+Main menu keyboard.
 
-Содержит inline-клавиатуру с основными действиями игрока.
+Inline keyboard with main player actions.
 """
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-# Константы для callback_data кнопок
 CALLBACK_NEW = "order_new"
 CALLBACK_MY = "order_my"
 CALLBACK_DONE = "order_done"
@@ -13,12 +12,10 @@ CALLBACK_DONE = "order_done"
 
 def main_menu_kb() -> InlineKeyboardMarkup:
     """
-    Создает главное меню с inline-кнопками.
+    Build main menu with inline buttons (New order, My order, Done).
 
     Returns:
-        InlineKeyboardMarkup с кнопками:
-        - 🧾 Новый заказ
-        - 📋 Мой заказ | ✅ Готово
+        InlineKeyboardMarkup
     """
     kb = [
         [InlineKeyboardButton(text="🧾 Новый заказ", callback_data=CALLBACK_NEW)],

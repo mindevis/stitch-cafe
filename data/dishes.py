@@ -1,6 +1,5 @@
 # data/dishes.py
-
-# Полное меню по уровням
+# Menu by level (dishes and cross counts)
 DISHES_BY_LEVEL = {
     0: [
         ("☕️ Эспрессо", 70),
@@ -34,5 +33,4 @@ DISHES_BY_LEVEL = {
     ],
 }
 
-# Особые заказы теперь определены в data/special_orders.py
-# Здесь оставлены только блюда по уровням
+# Special orders are in data/special_orders.py

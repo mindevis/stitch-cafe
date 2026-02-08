@@ -1,0 +1,23 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.py[cod]
+.venv
+venv
+env
+
+# Секреты и локальные данные
+.env
+*.db
+*.log
+logs/
+
+# Документация и прочее
+*.md
+.flake8
+push_to_github.bat
+pyproject.toml
+requirements-dev.txt

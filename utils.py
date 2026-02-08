@@ -1,38 +1,33 @@
 """
-Модуль с общими утилитами для бота.
+Shared utilities for the bot.
 
-Содержит вспомогательные функции для форматирования сообщений
-и проверки прав доступа.
+Message formatting and admin checks.
 """
 from config import ADMIN_IDS
 
 
 def format_user_mention(user_id: int, first_name: str) -> str:
     """
-    Форматирует имя пользователя как упоминание/гиперссылку для Telegram.
-    
+    Format user as Telegram mention (clickable link).
+
     Args:
-        user_id: Telegram ID пользователя
-        first_name: Имя пользователя
-        
+        user_id: Telegram user ID
+        first_name: User first name
+
     Returns:
-        HTML-строка с упоминанием пользователя (кликабельное имя)
-        
-    Example:
-        >>> format_user_mention(123456, "Иван")
-        "<a href='tg://user?id=123456'>Иван</a>"
+        HTML string with user mention
     """
     return f"<a href='tg://user?id={user_id}'>{first_name}</a>"
 
 
 def is_admin(user_id: str) -> bool:
     """
-    Проверяет, является ли пользователь администратором бота.
-    
+    Check if user is a bot admin.
+
     Args:
-        user_id: Telegram ID пользователя (строка)
-        
+        user_id: Telegram user ID (string)
+
     Returns:
-        True если пользователь является админом, иначе False
+        True if user is admin
     """
     return str(user_id) in ADMIN_IDS

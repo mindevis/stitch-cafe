@@ -1,8 +1,7 @@
 """
-Модуль обработки команды /start и событий добавления участников.
+Handlers for /start and chat member join events.
 
-Содержит обработчики для приветствия пользователей и автоматического
-приветствия новых участников чата.
+Greets users and automatically welcomes new chat members.
 """
 from aiogram import Router
 from aiogram.enums import ChatMemberStatus
@@ -22,23 +21,21 @@ router = Router()
 @router.message(CommandStart())
 async def cmd_start(message: Message) -> None:
     """
-    Обработчик команды /start.
+    Handle /start command.
 
-    Регистрирует пользователя в базе данных и отправляет приветственное
-    сообщение с inline-кнопками. Работает везде (в личке и в чате).
+    Registers user in database and sends welcome message with inline buttons.
+    Works in both private chat and groups.
 
     Args:
-        message: Объект сообщения от пользователя
+        message: Incoming message
 
     Raises:
-        Exception: При ошибках работы с БД или отправки сообщений
+        Exception: On DB or send errors
     """
     try:
-        # /start работает везде (в личке и в чате)
         async with get_db() as db:
             await ensure_user(db, message.from_user)
 
-        # Убираем старую ReplyKeyboard (если она была) и отправляем inline кнопки
         keyboard = main_menu_kb()
         name_mention = format_user_mention(message.from_user.id, message.from_user.first_name)
         await message.answer(
@@ -46,10 +43,9 @@ async def cmd_start(message: Message) -> None:
             reply_markup=ReplyKeyboardRemove(remove_keyboard=True),
             parse_mode="HTML",
         )
-        # Отправляем inline кнопки отдельным сообщением
         await message.answer(SELECT_ACTION, reply_markup=keyboard, parse_mode="HTML")
     except Exception as e:
-        logger.error(f"Ошибка обработки /start для пользователя {message.from_user.id}: {e}")
+        logger.error(f"Error handling /start for user {message.from_user.id}: {e}")
         try:
             await message.answer(
                 "❌ Произошла ошибка при запуске. Попробуйте позже.",
@@ -62,40 +58,32 @@ async def cmd_start(message: Message) -> None:
 @router.chat_member()
 async def on_new_member(event: ChatMemberUpdated) -> None:
     """
-    Обработчик добавления нового участника в чат.
+    Handle new chat member join.
 
-    Автоматически приветствует новых участников в игровом чате,
-    регистрирует их в базе данных и отправляет приветственное сообщение.
+    Welcomes new members in the game chat, registers them and sends welcome message.
 
     Args:
-        event: Событие обновления статуса участника чата
+        event: Chat member update event
 
     Raises:
-        Exception: При ошибках работы с БД или отправки сообщений
+        Exception: On DB or send errors
     """
     try:
-        # Проверяем, что это нужный чат
         if not CHAT_ID or str(event.chat.id) != str(CHAT_ID):
             return
 
-        # Проверяем, что пользователь стал участником
         old_status = event.old_chat_member.status
         new_status = event.new_chat_member.status
 
-        # Если пользователь стал участником
         if old_status != ChatMemberStatus.MEMBER and new_status == ChatMemberStatus.MEMBER:
-            # Получаем пользователя, который присоединился
             new_member = event.new_chat_member.user
 
-            # Пропускаем ботов
             if new_member.is_bot:
                 return
 
-            # Регистрируем пользователя в базе данных
             async with get_db() as db:
                 await ensure_user(db, new_member)
 
-            # Отправляем приветственное сообщение с кнопками
             keyboard = main_menu_kb()
             name_mention = format_user_mention(new_member.id, new_member.first_name)
             await event.bot.send_message(
@@ -108,4 +96,4 @@ async def on_new_member(event: ChatMemberUpdated) -> None:
                 chat_id=event.chat.id, text=SELECT_ACTION, reply_markup=keyboard, parse_mode="HTML"
             )
     except Exception as e:
-        logger.error(f"Ошибка приветствия нового участника {event.new_chat_member.user.id}: {e}")
+        logger.error(f"Error welcoming new member {event.new_chat_member.user.id}: {e}")
