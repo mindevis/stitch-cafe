@@ -27,7 +27,7 @@ target-version = "py311"
 [tool.ruff.lint]
 select = ["E", "W", "F", "I", "B", "C4", "UP"]
 ignore = ["E501", "B008"]
-per-file-ignores = {"__init__.py": ["F401"]}
+per-file-ignores = {"__init__.py" = ["F401"]}
 
 [tool.ruff.lint.isort]
 known-first-party = ["commands", "config", "data", "database", "keyboards", "utils"]
